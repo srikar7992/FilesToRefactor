@@ -1,0 +1,1296 @@
+﻿@using Newtonsoft.Json;
+@using RentaMetrix.DataModels;
+@model RentaMetrix.DataModels.PropertyOverviewModel
+@*@model RentaMetrixUI.Pages.Portfolio.PropertyOverview_PartialModel*@
+
+<style>
+    #map {
+        height: 576px;
+        width: 100%;
+    }
+    /* Style for the validation messages */
+    .validation-error {
+        color: red;
+        font-size: 12px;
+    }
+    /*#duplicater{
+                                                                display:block;
+                                                            }
+
+                                                            #universityDuplicater {
+                                                                display: block;
+                                                            }*/
+</style>
+
+<form id="formPropertyOverview" runat="server" asp-page-handler="PropertyOverviewSubmit">
+    <input type="hidden" name="PropertyId" value="@(Model.Property is null ? 0 :  Model.Property.PropertyId)" />
+    <input type="hidden" name="McId" value="@(Model.Property is null ? 1 :  Model.Property.McId)" />
+    <input type="hidden" id="propTypeId" value="@(Model.Property.PropertyTypeId)" />
+    <div>
+        <div class="nk-block">
+            <div class="card card-bordered card-stretch">
+                <div class="card-inner">
+                    <div class="row gy-4">
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="form-label" for="default-01">Property Name</label>
+                                <div class="form-control-wrap">
+                                    <input required type="text" maxlength="255" class="form-control" id="propertyName" name="PropertyName" value="@(Model.Property.PropertyName ?? "")" placeholder="Enter property name">
+                                    <span id="propertyName-error" class="validation-error"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="form-label" for="default-01">Address 1</label>
+                                <div class="form-control-wrap">
+                                    <input required type="text" maxlength="255" class="form-control" value="@(Model.Property.Address ?? "")" name="Address" id="address1" placeholder="Enter address 1">
+                                    <span id="address1-error" class="validation-error"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="form-label" for="default-01">Address 2</label>
+                                <div class="form-control-wrap">
+                                    <input type="text" maxlength="255" class="form-control" value="@(Model.Property.Address2 ?? "")" name="Address2" id="address2" name="Address2" placeholder="Enter address 2">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="form-label" for="default-01">State</label>
+                                <div class="form-control-wrap ">
+                                    <div class="form-control-select">
+                                        <select required class="form-control" id="state" name="State">
+                                            <option selected value="">Select State</option>
+                                        </select>
+                                        <span id="state-error" class="validation-error"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="form-label" for="default-01">City</label>
+                                <input class="form-control" id="city" name="City" type="text" value="@(Model.Property.City ?? "")" required />
+                                <span id="city-error" maxlength="255" class="validation-error"></span>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <label class="form-label" for="default-01">Zip</label>
+                                <div class="form-control-wrap">
+                                    <input type="number" pattern="[0-9]*" minlength="5" maxlength="5" step="1" class="form-control" value="@(Model.Property.Zip ?? "")" id="zip" name="Zip" placeholder="Enter Zip" oninput="formatPhoneNumber()">
+                                    <span id="zip-error" class="validation-error"></span>
+                                </div>
+                            </div>
+                        </div>
+                        @* <div class="col-sm-2">Drop a Pin<br /><img src="~/images/pin.png"></div>*@
+                        <input type="hidden" id="selectedState" value="@(Model.Property.State ?? "")" />
+                        <input hidden required class="form-control" value="@(Model.Property.Longitude ?? "")" name="Longitude" id="long" placeholder="Longitude">
+                        <input hidden required class="form-control" value="@(Model.Property.Latitude ?? "")" id="lat" name="Latitude" placeholder="Latitude">
+                        <div class="col-sm-12 border">
+                            @*<iframe style="width:100%" width="100" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>*@
+                            <div id="map"></div>
+                            @*<iframe style="width:100%" src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d557.6238557741749!2d78.41783595451221!3d17.46959772164766!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sin!4v1678336975772!5m2!1sen!2sin" width="100" height="300" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>*@
+                        </div>
+                    </div>
+                </div><!-- .card-inner -->
+            </div><!-- .card -->
+        </div><!-- .nk-block -->
+        <div class="nk-block">
+            <div class="card card-bordered card-stretch">
+                <div class="card-inner">
+                    <div class="row gy-4">
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <label class="form-label" for="propertyTypeDropdown">Property Type</label>
+                                <div class="form-control-wrap ">
+                                    <div class="form-control-select">
+                                        <select required class="form-control" id="propertyTypeDropdown" name="PropertyType.PropertyTypeId">
+                                            <option value="">Select Type</option>
+                                            @foreach (var type in Model.PropertyTypes)
+                                            {
+                                                if (Model.Property.PropertyType is not null && Model.Property.PropertyType.PropertyTypeId == type.PropertyTypeId)
+                                                {
+                                                    <option selected value="@type.PropertyTypeId">@type.PropertyTypeName</option>
+                                                }
+                                                <option value="@type.PropertyTypeId">@type.PropertyTypeName</option>
+                                            }
+                                        </select>
+                                        <span id="propertyTypeDropdown-error" class="validation-error"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="form-label" for="default-01">Year Built</label>
+                                <div class="form-control-wrap">
+                                    <input required type="number" oninput="validateYear(this)" pattern="[0-9]{4}" step="1" maxlength="4" min="1000" max="2050" class="form-control" value="@(Model.Property.YearsBuilt ?? "")" id="yearsBuilt" name="YearsBuilt" placeholder="Enter year built">
+                                    <span id="yearsBuilt-error" class="validation-error"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <label class="form-label" for="default-01">Total Units</label>
+                                <div class="form-control-wrap">
+                                    <input required type="number" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,4)" min="0" step="1" class="form-control" value="@(Model.Property.TotalUnits ?? "")" id="totalUnits" name="TotalUnits" placeholder="Enter units">
+                                    <span id="totalUnits-error" class="validation-error"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="form-label" for="default-01">Total Beds</label>
+                                <div class="form-control-wrap">
+                                    <input required type="number" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5)" min="0" step="1" class="form-control" value="@(Model.Property.TotalBeds ?? "")" id="totalBeds" name="TotalBeds" placeholder="Enter beds count">
+                                    <span id="totalBeds-error" class="validation-error"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row my-3">
+                        <div class="col-sm-12">
+                            <div class="d-flex justify-content-between">
+                                @*<div class="form-group">
+                                <input type="checkbox" class="form-control" id="isRenovated">
+                                <label class="custom-control-label" for="customCheck1">Is this property Renovated ?</label>
+                                </div>*@
+                                <div class="form-check form-switch">
+                                    @if (Model.Property.PropertyRenovated is not null && Model.Property.PropertyRenovated == true)
+                                    {
+                                        <input required type="hidden" value="true" id="propRenovated" name="PropertyRenovated" />
+                                        <input required class="form-check-input" checked type="checkbox" id="isRenovated" style="width: 2rem; height: 1rem;">
+                                    }
+                                    else
+                                    {
+                                        <input required type="hidden" value="false" id="propRenovated" name="PropertyRenovated" />
+                                        <input required class="form-check-input" type="checkbox" id="isRenovated" style="width: 2rem; height: 1rem;">
+                                    }
+                                    <label class="form-check-label" for="isRenovated">Is this property Renovated?</label>
+                                </div>
+
+                                <div class="form-group" id="renovatedYearGroup" style="display:none;">
+                                    <label class="form-label" for="renovatedYear">Renovation Year</label>
+                                    <div class="form-control-wrap ">
+                                        <input style="width:100px" type="number" oninput="validateYear(this)" pattern="[0-9]{4}" step="1" maxlength="4" min="1000" max="2050" class="form-control d-inline" id="renovatedYear" value="@(Model.Property.RenovationYear ?? "")" name="RenovationYear" placeholder="Renovation Year">
+                                    </div>
+                                    <span id="renovatedYear-error" class="validation-error"></span>
+                                </div>
+                                <div></div>
+                            </div>
+                        </div>
+                        <div class="row my-4">
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <label class="form-label" for="default-01">Preffered Market</label>
+                                    <div class="form-control-wrap ">
+                                        <div class="form-control-select">
+                                            <select required class="form-control" id="preferedMarket" name="MarketId">
+                                                <option value="1" selected>Clemson</option>
+                                            </select>
+                                            <span id="preferedMarket-error" class="validation-error"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6"></div>
+                        </div>
+                        <!--start university repeat section-->
+                        <div class="row gy-4 mb-4">
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <label class="form-label" for="default-01">University</label>
+                                    <div class="form-control-wrap ">
+                                        <div class="form-control-select">
+                                            @if (Model.Property.PropertyUniversities.Count > 0)
+                                            {
+                                                <input type="hidden" value="@Model.Property.PropertyUniversities[0].UniversityId" id="univId" />
+                                                <input type="hidden" value="@Model.Property.PropertyUniversities[0].PuId" name="PropertyUniversities[0].PuId" />
+                                            }
+                                            <select required class="form-control universityDropdown" id="firstUniv" name="PropertyUniversities[0].UniversityId">
+                                                <option value="" selected>Select University</option>
+                                                @foreach (var uni in Model.Universities)
+                                                {
+                                                    if (Model.Property.PropertyUniversities.Count > 0 && Model.Property.PropertyUniversities[0].UniversityId == uni.UniversityId)
+                                                    {
+                                                        <option selected value="@uni.UniversityId">@uni.UniversityName</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@uni.UniversityId">@uni.UniversityName</option>
+                                                    }
+                                                }
+                                            </select>
+                                            <span id="firstUniv-error" class="validation-error"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <label class="form-label" for="default-01">Walk to Campus/Transportation</label>
+                                    <div class="form-control-wrap ">
+                                        <div class="form-control-select">
+                                            <select required class="form-control" id="firstTransport" name="PropertyUniversities[0].CampusTransport">
+                                                <option value="" selected>Select Type</option>
+                                                @if (Model.Property.PropertyUniversities is not null && Model.Property.PropertyUniversities.Count > 0 && Model.Property.PropertyUniversities[0].CampusTransport == "Campus")
+                                                {
+                                                    <option selected value="Campus">Walk to Campus</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="Campus">Walk to Campus</option>
+                                                }
+                                                @if (Model.Property.PropertyUniversities is not null && Model.Property.PropertyUniversities.Count > 0 && Model.Property.PropertyUniversities[0].CampusTransport == "Transportation")
+                                                {
+                                                    <option selected value="Transportation">Transportation</option>
+                                                }
+                                                else
+                                                {
+                                                    <option value="Transportation">Transportation</option>
+                                                }
+                                            </select>
+                                            <span id="firstTransport-error" class="validation-error"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                <div class="form-group">
+                                    <label class="form-label" for="default-01">Distance to Campus</label>
+                                    <div class="form-control-wrap">
+                                        <div class="form-text-hint">
+                                            <span class="overline-title">miles</span>
+                                        </div>
+                                        @if (Model.Property.PropertyUniversities is not null && Model.Property.PropertyUniversities.Count > 0)
+                                        {
+                                            <input required type="number" class="form-control" name="PropertyUniversities[0].DistanceToCampus" value="@(Model.Property.PropertyUniversities[0].DistanceToCampus ?? "")" id="distToCampus" placeholder="Enter miles" readonly>
+                                        }
+                                        else
+                                        {
+                                            <input required type="number" class="form-control" name="PropertyUniversities[0].DistanceToCampus" id="distToCampus" placeholder="Enter miles" readonly>
+                                        }
+                                        <span id="distToCampus-error" class="validation-error"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div><!--End university repeat section-->
+                        @* <div id="duplicateUniversity" style="display:block">
+                        <div class="row gy-4 mb-4" id="universityDuplicater">
+                        <div class="col-sm-3">
+                        <div class="form-group">
+                        <div class="form-control-wrap ">
+                        <div class="form-control-select">
+                        <select class="form-control universityDropdown" id="default-06" name="PropertyUniversities[1].UniversityId">
+                        <option value="" selected>Select University</option>
+                        @foreach (var uni in Model.Universities)
+                        {
+                        if (Model.Property.PropertyUniversities.Count > 1 && Model.Property.PropertyUniversities[1].UniversityId == uni.UniversityId)
+                        {
+                        <option selected value="@uni.UniversityId">@uni.UniversityName</option>
+                        }
+                        else
+                        {
+                        <option value="@uni.UniversityId">@uni.UniversityName</option>
+                        }
+                        }
+                        </select>
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+                        <div class="col-sm-3">
+                        <div class="form-group">
+                        <div class="form-control-wrap ">
+                        <div class="form-control-select">
+                        <select class="form-control" id="default-06" name="PropertyUniversities[1].CampusTransport">
+                        <option value="" selected disabled>Select Type</option>
+                        @if (Model.Property.PropertyUniversities.Count > 1 && Model.Property.PropertyUniversities[1].CampusTransport == "Campus")
+                        {
+                        <option selected value="Campus">Campus</option>
+                        }
+                        else
+                        {
+                        <option value="Campus">Campus</option>
+                        }
+                        @if (Model.Property.PropertyUniversities.Count > 1 && Model.Property.PropertyUniversities[1].CampusTransport == "Transportation")
+                        {
+                        <option selected value="Transportation">Transportation</option>
+                        }
+                        else
+                        {
+                        <option value="Transportation">Transportation</option>
+                        }
+                        </select>
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+                        <div class="col-sm-3">
+                        <div class="form-group">
+                        <div class="form-control-wrap">
+                        <div class="form-text-hint">
+                        <span class="overline-title">miles</span>
+                        </div>
+                        @if (Model.Property.PropertyUniversities.Count > 1)
+                        {
+                        <input type="text" class="form-control" name="PropertyUniversities[1].DistanceToCampus" value="@(Model.Property.PropertyUniversities[1].DistanceToCampus ?? "")" id="default-05" placeholder="Enter miles">
+                        }
+                        else
+                        {
+                        <input type="text" class="form-control" name="PropertyUniversities[1].DistanceToCampus" id="default-05" placeholder="Enter miles">
+                        }
+                        </div>
+                        </div>
+                        </div>
+                        <button type="button" onclick="return this.parentNode.remove();" class="btn btn-icon btn-trigger text-primary col-sm-1"><em class="icon ni ni-trash"></em></button>
+                        </div><!--End university repeat section-->
+                        </div>
+
+
+                        <div class="row">
+                        <div class="text-right mt-4"><a href="javascript:void(0)" onclick="duplicateUni()" class="add-row">Add Another</a></div>
+                        </div>*@
+                    </div><!-- .card-inner -->
+                </div><!-- .card -->
+            </div><!-- .nk-block -->
+            <div class="nk-block">
+                <div class="card card-bordered card-stretch">
+
+                    <div class="card-inner">
+                        <div id="companyContainer">
+                            @if (!string.IsNullOrEmpty(Model.Property.ContactDetails))
+                            {
+                                var contactDetails = JsonConvert.DeserializeObject<List<ContactDetails>>(Model.Property.ContactDetails);
+                                if (contactDetails.Count > 0)
+                                {
+                                    <div class="row gy-4 mb-4">
+                                        <div class="col-sm-2">
+                                            <div class="form-group">
+                                                <label class="form-label" for="default-01">Company/Owner</label>
+                                                <div class="form-control-wrap ">
+                                                    <div class="form-control-select">
+                                                        <select class="form-control" id="firstCompOwner" name="contactDetails[0].CompanyOwner">
+                                                            <option value="" selected>Select Option</option>
+                                                            @if (contactDetails[0].CompanyOwner == "Company")
+                                                            {
+                                                                <option selected value="Company">Company</option>
+                                                                <option value="Owner">Owner</option>
+                                                            }
+                                                            else
+                                                            {
+                                                                <option value="Company">Company</option>
+                                                                <option selected value="Owner">Owner</option>
+                                                            }
+
+                                                        </select>
+                                                    </div>
+                                                    <span id="firstCompOwner-error" class="validation-error"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label class="form-label" for="default-01">Management Company Name</label>
+                                                <div class="form-control-wrap ">
+                                                    <input type="text" class="form-control" id="firstCompOwnerName" value="@contactDetails[0].CompanyOwnerName" placeholder="Enter property name" name="contactDetails[0].CompanyOwnerName">
+                                                </div>
+                                                <span id="firstCompOwnerName-error" class="validation-error"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label class="form-label" for="default-01">Contact Person</label>
+                                                <div class="form-control-wrap">
+                                                    <input type="text" class="form-control" id="firstContact" value="@contactDetails[0].ContactPerson" placeholder="Enter contact person name" name="contactDetails[0].ContactPerson">
+                                                </div>
+                                                <span id="firstContact-error" class="validation-error"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            <div class="form-group">
+                                                <label class="form-label" for="default-01">Email Id</label>
+                                                <div class="form-control-wrap">
+                                                    <input type="email" class="form-control" id="firstEmail" value="@contactDetails[0].Email" placeholder="Enter email Id" name="contactDetails[0].Email">
+                                                </div>
+                                                <span id="firstEmail-error" class="validation-error"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @*<div class="row gy-4 mb-4" id="duplicater" style="display:block">
+                            <div class="col-sm-2">
+                            <div class="form-group">
+                            <label class="form-label" for="default-01">Company/Owner</label>
+                            <div class="form-control-wrap ">
+                            <div class="form-control-select">
+                            <select class="form-control" id="default-06" name="contactDetails[1].CompanyOwner">
+                            <option value="" disabled>Select Option</option>
+                            <option value="Company">Company</option>
+                            <option value="Owner">Owner</option>
+                            </select>
+                            </div>
+                            </div>
+                            </div>
+                            </div>
+                            <div class="col-sm-3">
+                            <div class="form-group">
+                            <label class="form-label" for="default-01">Management Company Name</label>
+                            <div class="form-control-wrap ">
+                            <input type="text" class="form-control" id="" placeholder="Enter property name" name="contactDetails[1].CompanyOwnerName">
+                            </div>
+                            </div>
+                            </div>
+                            <div class="col-sm-3">
+                            <div class="form-group">
+                            <label class="form-label" for="default-01">Contact Person</label>
+                            <input type="text" class="form-control" id="" placeholder="Enter contact person name" name="contactDetails[0].ContactPerson">
+                            </div>
+                            </div>
+                            <div class="col-sm-3">
+                            <div class="form-group">
+                            <label class="form-label" for="default-01">Email Id</label>
+                            <div class="form-control-wrap">
+                            <input type="text" class="form-control" id="" placeholder="Enter email Id" name="contactDetails[1].Email">
+                            </div>
+                            </div>
+                            </div>
+                            <button type="button" onclick="deleteDuplicate(this);" class="btn btn-icon btn-trigger text-primary col-sm-1"><em class="icon ni ni-trash" style="padding-top: 1.5em;"></em></button>
+                            </div>*@
+                                }
+                            }
+                            else
+                            {
+                                <div class="row gy-4 mb-4">
+                                    <div class="col-sm-2">
+                                        <div class="form-group">
+                                            <label class="form-label" for="default-01">Company/Owner</label>
+                                            <div class="form-control-wrap ">
+                                                <div class="form-control-select">
+                                                    <select class="form-control" id="firstCompOwner" name="contactDetails[0].CompanyOwner">
+                                                        <option value="" selected>Select Option</option>
+                                                        <option value="Company">Company</option>
+                                                        <option value="Owner">Owner</option>
+                                                    </select>
+                                                </div>
+                                                <span id="firstCompOwner-error" class="validation-error"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <label class="form-label" for="default-01">Management Company Name</label>
+                                            <div class="form-control-wrap ">
+                                                <input type="text" class="form-control" id="firstCompOwnerName" placeholder="Enter property name" name="contactDetails[0].CompanyOwnerName">
+                                            </div>
+                                            <span id="firstCompOwnerName-error" class="validation-error"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <label class="form-label" for="default-01">Contact Person</label>
+                                            <div class="form-control-wrap">
+                                                <input type="text" class="form-control" id="firstContact" placeholder="Enter contact person name" name="contactDetails[0].ContactPerson">
+                                            </div>
+                                            <span id="firstContact-error" class="validation-error"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <label class="form-label" for="default-01">Email Id</label>
+                                            <div class="form-control-wrap">
+                                                <input type="email" class="form-control" id="firstEmail" placeholder="Enter email Id" name="contactDetails[0].Email">
+                                            </div>
+                                            <span id="firstEmail-error" class="validation-error"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        @*<div class="row">
+                        <div class="text-right mt-4"><a href="javascript:void(0)" onclick="duplicate()" class="add-row">Add Another</a></div>
+                        </div>*@
+                    </div><!-- .card-inner -->
+                </div><!-- .card -->
+            </div><!-- .nk-block -->
+            <div class="nk-block">
+                <div class="card card-bordered card-stretch">
+                    <div class="card-inner">
+                        <div class="row gy-4">
+                            <div class="form-group">
+                                @* <label class="form-label" for="default-01">Upload Photos</label>*@
+                                @* <div class="uploadgallery">
+                                <ul>
+                                <li>
+                                <img src="~/images/gallery/thumb.jpg" />
+                                <div class="middle d-flex">
+                                <div class="text"><a href=""><em class="icon ni ni-bookmark-fill"></em></a></div> <div class="text"> <a href=""><em class="icon ni ni-trash-fill"></em></a></div>
+                                </div>
+                                </li>
+                                <li>
+                                <img src="~/images/gallery/thumb.jpg" />
+                                <div class="middle d-flex">
+                                <div class="text"><a href=""><em class="icon ni ni-bookmark-fill"></em></a></div> <div class="text"> <a href=""><em class="icon ni ni-trash-fill"></em></a></div>
+                                </div>
+                                </li>
+                                <li>
+                                <img src="~/images/gallery/thumb.jpg" />
+                                <div class="middle d-flex">
+                                <div class="text"><a href=""><em class="icon ni ni-bookmark-fill"></em></a></div> <div class="text"> <a href=""><em class="icon ni ni-trash-fill"></em></a></div>
+                                </div>
+                                </li>
+                                <li>
+                                <img src="~/images/gallery/thumb.jpg" />
+                                <div class="middle d-flex">
+                                <div class="text"><a href=""><em class="icon ni ni-bookmark-fill"></em></a></div> <div class="text"> <a href=""><em class="icon ni ni-trash-fill"></em></a></div>
+                                </div>
+                                </li>
+                                <li><a href=""><img src="~/images/gallery/addimage.jpg" /></a></li>
+                                </ul>
+                                </div>*@
+                            </div>
+                        </div>
+                        <div class="row gy-4 pt-2">
+                            <div class="form-group">
+                                <label class="form-label" for="default-01">Notes</label>
+                                <div class="form-control-wrap">
+                                    <textarea class="form-control no-resize" maxlength="500" id="default-textarea" name="PropertyNotes" placeholder="Enter notes"> @(Model.Property.PropertyNotes ?? "")</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12 col-xl-12 col-xxl-12 text-right mt-3">
+                <button id="btnNext" type="submit" class="btn btn-primary">Next</button>
+            </div>
+            @* <div class="col-lg-12 col-xl-12 col-xxl-12 text-right mt-3">
+            <button class="btn btn-primary">Next</button>
+            </div>*@
+        </div><!-- .row -->
+    </div>
+</form>
+@*<script async defer src="https://maps.google.com/maps/api/js?sensor=false&callback=initMap"></script>*@
+@*Google Maps API key: AIzaSyBXN1sqgvIa9kjL5vvqaG1 AguohAU_ZRBs*@
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBXN1sqgvIa9kjL5vvqaG1AguohAU_zRBs&callback=initMap"></script>
+<script>
+    function validateYear(input) {
+        // Remove any non-numeric characters and limit to 4 digits
+        input.value = input.value.replace(/[^0-9]/g, '').slice(0, 4);
+        // Get the current year
+        var currentYear = new Date().getFullYear();
+        // Get the entered year
+        var enteredYear = parseInt(input.value);
+        // If the entered year is greater than the current year, set the value to the current year
+        if (enteredYear > currentYear) {
+            input.value = currentYear.toString();
+        }
+    }
+    var emailInput = document.getElementById('firstEmail');
+    var emailError = document.getElementById('firstEmail-error');
+    var emailRegEx = /^(([^<>()[\]\\.,;:\s@@\"]+(\.[^<>()[\]\\.,;:\s@@\"]+)*)|(\".+\"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    emailInput.addEventListener('input', function () {
+        if (!emailRegEx.test(emailInput.value)) {
+            emailError.innerHTML = 'Please enter a valid email address.';
+            $("firstEmail").addClass('is-invalid');
+        } else {
+            emailError.innerHTML = '';
+           $("firstEmail").removeClass('is-invalid');
+        }
+    });
+</script>
+<script>
+    // In the following example, markers appear when the user clicks on the map.
+    // The markers are stored in an array.
+    // The user can then click an option to hide, show or delete the markers.
+    var map;
+    var markers = [];
+
+    function initMap() {
+        // Get the values from the hidden fields
+        var latitude = parseFloat(document.getElementById('lat').value);
+        var longitude = parseFloat(document.getElementById('long').value);
+
+
+        // Set the initial map center
+        var center = { lat: 34.6834, lng: -82.8374 };
+
+        if (!isNaN(latitude) && !isNaN(longitude)) {
+            center = { lat: latitude, lng: longitude };
+        }
+
+        // If there are valid values in the hidden fields, use them as the center
+        //if (!isNaN(latitude) && !isNaN(longitude)) {
+
+        //    var marker = new google.maps.Marker({
+        //        position: center,
+        //        map: map
+        //    });
+        //    markers.push(marker);
+        //}
+
+        // Create the map with the initial center
+        map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 16.3,
+            center: center,
+            mapTypeId: 'terrain'
+        });
+
+        if (!isNaN(latitude) && !isNaN(longitude)) {
+            var marker = new google.maps.Marker({
+                position: center,
+                map: map
+            });
+            markers.push(marker);
+        }
+
+        // Add a click listener to the map
+        map.addListener('click', function (event) {
+            // Reset dropdowns
+            $("#firstTransport").val("");
+            $("#firstTransport").addClass("is-invalid");
+            $('#firstTransport-error').text('Please select transport.');
+            $("#firstUniv").val("");
+            $("#firstUniv").addClass("is-invalid");
+            $('#firstUniv-error').text('Please select university.');
+            // Reset distance to campus
+            $("#distToCampus").val("");
+            // Clear existing markers
+            deleteMarkers();
+
+            // Add a new marker for the clicked location
+            addMarker(event.latLng);
+
+            // Update the hidden fields with the new coordinates
+            document.getElementById('lat').value = event.latLng.lat();
+            document.getElementById('long').value = event.latLng.lng();
+        });
+    }
+    // Adds a marker to the map and push to the array.
+    function addMarker(location) {
+        var marker = new google.maps.Marker({
+            position: location,
+            map: map
+        });
+        markers.push(marker);
+    }
+
+    // Sets the map on all markers in the array.
+    function setMapOnAll(map) {
+        for (var i = 0; i < markers.length; i++) {
+            markers[i].setMap(map);
+        }
+    }
+
+    // Removes the markers from the map, but keeps them in the array.
+    function clearMarkers() {
+        setMapOnAll(null);
+    }
+
+    // Deletes all markers in the array by removing references to them.
+    function deleteMarkers() {
+        clearMarkers();
+        markers = [];
+    }
+
+</script>
+<script>
+    var index = 2;
+    var jIndex = 2;
+    var original = document.getElementById('duplicater');
+    var originalUniversity = document.getElementById('universityDuplicater');
+
+    ////function to create duplicate columns
+    //function duplicate() {
+    //    var clone = original.cloneNode(true); // "deep" clone
+    //    clone.id = "duplicater" + ++i;
+    //    // or clone.id = ""; if the divs don't need an ID
+    //    original.parentNode.appendChild(clone);
+    //}
+    //function to create duplicate columns
+
+    //function duplicate() {
+    //    var original = document.getElementById('duplicater' + i);
+    //    var clone = original.cloneNode(true); // "deep" clone
+    //    clone.id = "duplicater" + ++i; // there can only be one element with an ID
+    //    clone.onclick = duplicate; // event handlers are not cloned
+    //    original.parentNode.appendChild(clone);
+    //}
+    function duplicate() {
+        if (original.style.display === "block") {
+            original.style.display = "none";
+        }
+        var clone = original.cloneNode(true); // "deep" clone
+        clone.id = "duplicater" + index;
+        console.log(clone.id);
+        // or clone.id = ""; if the divs don't need an ID
+
+        // clear input fields
+        $(clone).find("input[type='text']").val("");
+        $(clone).find("select").prop('selectedIndex', 0);
+
+        // update names of input fields
+        $(clone).find("input[name^='contactDetails']").each(function () {
+
+            var name = $(this).attr("name").replace(/\[(\d+)\]/, "[" + index + "]");
+            $(this).attr("name", name);
+        });
+
+        $(clone).find("select[name^='contactDetails']").each(function () {
+            var name = $(this).attr("name").replace(/\[(\d+)\]/, "[" + index + "]");
+            $(this).attr("name", name);
+        });
+
+        original.parentNode.appendChild(clone);
+        index++; // increment i after adding the new element
+    }
+
+    function duplicateUni() {
+        if (originalUniversity.style.display === "block") {
+            originalUniversity.style.display = "none";
+        }
+        var clone = originalUniversity.cloneNode(true); // "deep" clone
+        clone.id = "universityDuplicater" + jIndex;
+        // clear input fields
+        $(clone).find("input[type='text']").val("");
+        $(clone).find("select").prop('selectedIndex', 0);
+
+        // update names of input fields
+        $(clone).find("input[name^='PropertyUniversities']").each(function () {
+
+            var name = $(this).attr("name").replace(/\[(\d+)\]/, "[" + jIndex + "]");
+            $(this).attr("name", name);
+        });
+
+        $(clone).find("select[name^='PropertyUniversities']").each(function () {
+            var name = $(this).attr("name").replace(/\[(\d+)\]/, "[" + jIndex + "]");
+            $(this).attr("name", name);
+        });
+
+        originalUniversity.parentNode.appendChild(clone);
+        jIndex++; // increment i after adding the new element
+    }
+
+    function deleteDuplicate(elem) {
+        // remove the duplicate element
+        elem.parentNode.parentNode.removeChild(elem.parentNode);
+
+        // update the names of remaining duplicate elements
+        var duplicates = document.querySelectorAll('.duplicate');
+        for (var j = 0; j < duplicates.length; j++) {
+            var inputs = duplicates[j].querySelectorAll('input, select');
+            for (var k = 0; k < inputs.length; k++) {
+                var name = inputs[k].getAttribute('name');
+                if (name) {
+                    name = name.replace(/\[(\d+)\]/, function (match, p1) {
+                        var index = parseInt(p1);
+                        if (index > i) {
+                            return '[' + (index - 1) + ']';
+                        } else {
+                            return '[' + index + ']';
+                        }
+                    });
+                    inputs[k].setAttribute('name', name);
+                }
+            }
+        }
+
+        // update the value of i
+        i--;
+    }
+
+    //function duplicateUni() {
+    //    var clone = originalUniversity.cloneNode(true); // "deep" clone
+    //    clone.id = "duplicater" + ++jIndex;
+    //    // or clone.id = ""; if the divs don't need an ID
+    //    originalUniversity.parentNode.appendChild(clone);
+    //}
+
+    function formatPhoneNumber() {
+        var phoneNumber = document.getElementById("zip").value;
+        phoneNumber = phoneNumber.replace(/\D/g, '');
+        phoneNumber = phoneNumber.substring(0, 5);
+        document.getElementById("zip").value = phoneNumber;
+    }
+</script>
+<script>
+    $(document).ready(function () {
+        var propRenovated = $('#propRenovated').val();
+        if (propRenovated == "true") {
+            $('#renovatedYearGroup').show();
+            $('#renovatedYear').prop('required', true);
+        }
+        else {
+            $('#renovatedYearGroup').hide();
+            $('#renovatedYear').prop('required', false);
+        }
+        //Logic to show or hide Renovated Year on Checking and Unchecking the check box
+        $('#isRenovated').click(function () {
+            if ($(this).is(':checked')) {
+                $('#renovatedYearGroup').show();
+                $('#isRenovated').val(true);
+                $('#propRenovated').val("true");
+                $('#renovatedYear').prop('required', true);
+            } else {
+                $('#renovatedYearGroup').hide();
+                $('#isRenovated').val(false);
+                $('#renovatedYear').val("");
+                $('#propRenovated').val("false");
+                $('#renovatedYear').prop('required', false);
+            }
+        });
+
+
+        //Logic to append States in dropdown which is loaded from the json
+        fetch('US_States_and_Cities.json')
+            .then(response => response.json())
+            .then(data => {
+                // Sort states alphabetically
+                const states = Object.keys(data).sort();
+                // Populate state dropdown
+                const stateDropdown = document.getElementById('state');
+                states.forEach(state => {
+                    const option = document.createElement('option');
+                    option.value = state;
+                    option.textContent = state;
+                    stateDropdown.appendChild(option);
+                });
+                var st = document.getElementById('selectedState').value;
+                const stateOption = [...stateDropdown.options].find(option => option.text === st);
+                if (stateOption) {
+                    stateOption.selected = true;
+                } else {
+                    //console.error(`State option "${st}" not found in dropdown`);
+                }
+            })
+            .catch(error => console.error(error));
+
+    });
+    //$(document).ready(function () {
+    //    if (localStorage["PropertyOverviewValidated"] != null && localStorage["PropertyOverviewValidated"] != undefined && localStorage["PropertyOverviewValidated"] != "" && localStorage["PropertyOverviewValidated"] != false) {
+    //        document.getElementById("tabUpfrontcosts").click();
+    //        localStorage["PropertyOverviewValidated"] = false;
+    //    }
+
+    //}
+    $(document).ready(function () {
+        // Add event listeners to the input fields that clear the corresponding error messages when the input field is modified.
+        $("#propertyName").on('input', function () {
+            $('#propertyName').removeClass('is-invalid');
+            $('#propertyName-error').text('');
+        });
+
+        $("#address1").on('input', function () {
+            $('#address1').removeClass('is-invalid');
+            $('#address1-error').text('');
+        });
+
+        $("#state").on('input', function () {
+            $('#state').removeClass('is-invalid');
+            $('#state-error').text('');
+        });
+
+        $("#city").on('input', function () {
+            $('#city').removeClass('is-invalid');
+            $('#city-error').text('');
+        });
+
+        $("#zip").on('input', function () {
+            $('#zip').removeClass('is-invalid');
+            $('#zip-error').text('');
+        });
+
+        $("#propertyTypeDropdown").on('input', function () {
+            $('#propertyTypeDropdown').removeClass('is-invalid');
+            $('#propertyTypeDropdown-error').text('');
+        });
+
+        $("#yearsBuilt").on('input', function () {
+            $('#yearsBuilt').removeClass('is-invalid');
+            $('#yearsBuilt-error').text('');
+        });
+
+        $("#totalUnits").on('input', function () {
+            $('#totalUnits').removeClass('is-invalid');
+            $('#totalUnits-error').text('');
+        });
+
+        $("#totalBeds").on('input', function () {
+            $('#address1').removeClass('is-invalid');
+            $('#totalBeds-error').text('');
+        });
+
+        $("#preferedMarket").on('input', function () {
+            $('#preferedMarket').removeClass('is-invalid');
+            $('#preferedMarket-error').text('');
+        });
+
+        $("#firstUniv").on('input', function () {
+            $('#firstUniv').removeClass('is-invalid');
+            $('#firstUniv-error').text('');
+        });
+
+        $("#firstTransport").on('input', function () {
+            $('#firstTransport').removeClass('is-invalid');
+            $('#firstTransport-error').text('');
+        });
+
+        //$("#distToCampus").on('input', function () {
+        //    $('#distToCampus-error').text('');
+        //});
+
+        $("#firstCompOwner").on('input', function () {
+            $('#firstCompOwner').removeClass('is-invalid');
+            $('#firstCompOwner-error').text('');
+        });
+
+        $("#firstCompOwnerName").on('input', function () {
+            $('#firstCompOwnerName').removeClass('is-invalid');
+            $('#firstCompOwnerName-error').text('');
+        });
+
+        $("#firstContact").on('input', function () {
+            $('#firstContact').removeClass('is-invalid');
+            $('#firstContact-error').text('');
+        });
+
+        $("#firstEmail").on('input', function () {
+            $('#firstEmail').removeClass('is-invalid');
+            $('#firstEmail-error').text('');
+        });
+
+        $("#renovatedYear").on('input', function () {
+            $('#renovatedYear').removeClass('is-invalid');
+            $('#renovatedYear-error').text('');
+        });
+        $("#btnNext").click(function () {
+
+            let isValid = true;
+
+            let nameInput = document.querySelector('#propertyName');
+            let propertyNameError = $('#propertyName-error');
+            if (!nameInput.value) {
+                $('#propertyName').addClass('is-invalid');
+                propertyNameError.text('Please enter Property name.');
+                isValid = false;
+            } else {
+                $('#propertyName').removeClass('is-invalid');
+                propertyNameError.text('');
+            }
+
+            let address1 = document.querySelector('#address1');
+            let address1Error = $('#address1-error');
+            if (!address1.value) {
+                $('#address1').addClass('is-invalid');
+                address1Error.text('Please enter address.');
+                isValid = false;
+            } else {
+                $('#address1').removeClass('is-invalid');
+                address1Error.text('');
+            }
+
+            let stateInp = document.querySelector('#state');
+            let stateError = $('#state-error');
+            if (!stateInp.value) {
+                $('#state').addClass('is-invalid');
+                stateError.text('Please enter state.');
+                isValid = false;
+            } else {
+                $('#state').removeClass('is-invalid');
+                stateError.text('');
+            }
+
+            let cityInp = document.querySelector('#city');
+            let cityError = $('#city-error');
+            if (!cityInp.value) {
+                $('#city').addClass('is-invalid');
+                cityError.text('Please enter city.');
+                isValid = false;
+            } else {
+                $('#city').removeClass('is-invalid');
+                cityError.text('');
+            }
+
+            let zip = document.querySelector('#zip');
+            let zipError = $('#zip-error');
+            if (!zip.value) {
+                $('#zip').addClass('is-invalid');
+                zipError.text('Please enter zip.');
+                isValid = false;
+            } else {
+                $('#zip').removeClass('is-invalid');
+                zipError.text('');
+            }
+
+            let propertyTypeDropdown = document.querySelector('#propertyTypeDropdown');
+            let propertyTypeDropdownError = $('#propertyTypeDropdown-error');
+            if (!propertyTypeDropdown.value) {
+                $('#propertyTypeDropdown').addClass('is-invalid');
+                propertyTypeDropdownError.text('Please select property type.');
+                isValid = false;
+            } else {
+                $('#propertyTypeDropdown').removeClass('is-invalid');
+                propertyTypeDropdownError.text('');
+            }
+
+            let yearsBuilt = document.querySelector('#yearsBuilt');
+            let yearsBuiltError = $('#yearsBuilt-error');
+            if (!yearsBuilt.value) {
+                $('#yearsBuilt').addClass('is-invalid');
+                yearsBuiltError.text('Please enter year built.');
+                isValid = false;
+            } else {
+                $('#yearsBuilt').removeClass('is-invalid');
+                yearsBuiltError.text('');
+            }
+
+            let totalUnits = document.querySelector('#totalUnits');
+            let totalUnitsError = $('#totalUnits-error');
+            if (!totalUnits.value) {
+                $('#totalUnits').addClass('is-invalid');
+                totalUnitsError.text('Please enter total units.');
+                isValid = false;
+            } else {
+                $('#totalUnits').removeClass('is-invalid');
+                totalUnitsError.text('');
+            }
+
+            let totalBeds = document.querySelector('#totalBeds');
+            let totalBedsError = $('#totalBeds-error');
+            if (!totalBeds.value) {
+                $('#totalBeds').addClass('is-invalid');
+                totalBedsError.text('Please enter total beds.');
+                isValid = false;
+            } else {
+                $('#totalBeds').removeClass('is-invalid');
+                totalBedsError.text('');
+            }
+
+            let preferedMarket = document.querySelector('#preferedMarket');
+            let preferedMarketError = $('#preferedMarket-error');
+            if (!preferedMarket.value) {
+                $('#preferedMarket').addClass('is-invalid');
+                preferedMarketError.text('Please select prefered market.');
+                isValid = false;
+            } else {
+                $('#preferedMarket').removeClass('is-invalid');
+                preferedMarketError.text('');
+            }
+
+            let firstUniv = document.querySelector('#firstUniv');
+            let firstUnivError = $('#firstUniv-error');
+            if (!firstUniv.value) {
+                $('#firstUniv').addClass('is-invalid');
+                firstUnivError.text('Please select university.');
+                isValid = false;
+            } else {
+                $('#firstUniv').removeClass('is-invalid');
+                firstUnivError.text('');
+            }
+
+            let firstTransport = document.querySelector('#firstTransport');
+            let firstTransportError = $('#firstTransport-error');
+            if (!firstTransport.value) {
+                $('#firstTransport').addClass('is-invalid');
+                firstTransportError.text('Please select transport.');
+                isValid = false;
+            } else {
+                $('#firstTransport').removeClass('is-invalid');
+                firstTransportError.text('');
+            }
+
+
+            let firstCompOwner = document.querySelector('#firstCompOwner');
+            let firstCompOwnerError = $('#firstCompOwner-error');
+            if (!firstCompOwner.value) {
+                $('#firstCompOwner').addClass('is-invalid');
+                firstCompOwnerError.text('Please select company or owner.');
+                isValid = false;
+            } else {
+                $('#firstCompOwner').removeClass('is-invalid');
+                firstCompOwnerError.text('');
+            }
+
+            let firstCompOwnerName = document.querySelector('#firstCompOwnerName');
+            let firstCompOwnerNameError = $('#firstCompOwnerName-error');
+            if (!firstCompOwnerName.value) {
+                $('#firstCompOwnerName').addClass('is-invalid');
+                firstCompOwnerNameError.text('Please enter Company name.');
+                isValid = false;
+            } else {
+                $('#firstCompOwnerName').removeClass('is-invalid');
+                firstCompOwnerNameError.text('');
+            }
+
+            let firstContact = document.querySelector('#firstContact');
+            let firstContactError = $('#firstContact-error');
+            if (!firstContact.value) {
+                $('#firstContact').addClass('is-invalid');
+                firstContactError.text('Please enter contact person name.');
+                isValid = false;
+            } else {
+                $('#firstContact').removeClass('is-invalid');
+                firstContactError.text('');
+            }
+
+            var emailRegex = /^(([^<>()[\]\\.,;:\s@@\"]+(\.[^<>()[\]\\.,;:\s@@\"]+)*)|(\".+\"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            let firstEmail = document.querySelector('#firstEmail');
+            let firstEmailError = $('#firstEmail-error');
+            if (!firstEmail.value) {
+                $('#firstEmail').addClass('is-invalid');
+                firstEmailError.text('Please enter contact email address.');
+                isValid = false;
+            } else {
+                if (!emailRegex.test(firstEmail.value)) {
+                    $('#firstEmail').addClass('is-invalid');
+                    firstEmailError.text("Please enter a valid email address");
+                    isValid = false;
+                }
+                else{
+                $('#firstEmail').removeClass('is-invalid');
+                    firstEmailError.text('');
+                }
+            }
+
+            var isRenov = $('#propRenovated').val();
+            if (isRenov == "true") {
+                let renovatedYear = document.querySelector('#renovatedYear');
+                let renovatedYearError = $('#renovatedYear-error');
+                if (!renovatedYear.value) {
+                    $('#renovatedYear').addClass('is-invalid');
+                    renovatedYearError.text('Please enter renovated year.');
+                    isValid = false;
+                } else {
+                    if (yearsBuilt.value && yearsBuilt.value > renovatedYear.value) {
+                        $('#renovatedYear').addClass('is-invalid');
+                        renovatedYearError.text('Renovation year must be greater than year built');
+                        isValid = false;
+                    }
+                    else {
+                        $('#renovatedYear').removeClass('is-invalid');
+                        renovatedYearError.text('');
+                    }
+
+                }
+            }
+
+            // Display all validation messages at once
+            if (!isValid) {
+                return false;
+            }
+
+            const longitudeInput = document.querySelector('#long');
+            const latitudeInput = document.querySelector('#lat');
+            if (longitudeInput.value === '' || latitudeInput.value === '') {
+                alert('Please drop a pin on the map to set the longitude and latitude values');
+                event.preventDefault();
+            }
+
+            if ($("#formPropertyOverview").valid()) {
+                localStorage["PropertyOverviewValidated"] = true;
+                document.getElementById("tabUpfrontcosts").click();
+            }
+            event.preventDefault();
+        });
+    });
+</script>
+<script>
+
+    // get the university dropdown and transportation dropdown
+    const universityDropdown = $('#firstUniv');
+    const transportationDropdown = $('#firstTransport');
+
+    // listen for changes in the dropdowns
+    universityDropdown.on('change', () => calculateDistance());
+    transportationDropdown.on('change', () => calculateDistance());
+
+    // calculate the distance between the start location and the selected university
+    function calculateDistance() {
+        // get the starting location from the hidden inputs
+        const startLocation = {
+            latitude: parseFloat($('#lat').val()),
+            longitude: parseFloat($('#long').val())
+        };
+
+        //const selectedUniversity = universityDropdown.find(':selected');
+        const selectedUniversity = $('#firstUniv :selected');
+        const transportMode = transportationDropdown.val();
+
+        // check if start location is set
+        if (!startLocation.latitude || !startLocation.longitude) {
+            alert('Please drop a pin on the map to set your location');
+            return;
+        }
+
+        // check if university and transportation are selected
+        if (!selectedUniversity.val() || !transportMode) {
+            return;
+        }
+
+        // get the end location from the selected university
+        const latLngStr = selectedUniversity.data('info').split('|');
+        const latStr = parseFloat(latLngStr[0]);
+        const lngStr = parseFloat(latLngStr[1]);
+        //console.log(latStr + ":" + lngStr);
+
+
+        let endLocation;
+        //const latStr = 34.683437;//selectedUniversity.data('latitude');
+        //const lngStr = -82.837364;//selectedUniversity.data('longitude');
+
+        //console.log(latStr + " : " + lngStr);
+
+        if (!isNaN(parseFloat(latStr)) && !isNaN(parseFloat(lngStr))) {
+            endLocation = {
+                latitude: parseFloat(latStr),
+                longitude: parseFloat(lngStr)
+            };
+        }
+
+        // create a new Maps Distance Matrix service
+        const service = new google.maps.DistanceMatrixService();
+
+        // send a request to the service to calculate the distance
+        service.getDistanceMatrix({
+            origins: [new google.maps.LatLng(startLocation.latitude, startLocation.longitude)],
+            destinations: [new google.maps.LatLng(endLocation.latitude, endLocation.longitude)],
+            travelMode: transportMode === 'Campus' ? google.maps.TravelMode.WALKING : google.maps.TravelMode.DRIVING
+        }, (response, status) => {
+            if (status === 'OK') {
+                const distance = response.rows[0].elements[0].distance.text;
+                const distanceValue = parseFloat(distance.match(/[\d\.]+/)[0]);
+                $('#distToCampus').val(distanceValue);
+                // do something with the distance
+            } else {
+                alert('Unable to calculate distance: ' + status);
+            }
+        });
+    }
+
+</script>
+<script>
+    // Get references to the input fields
+    const yearsBuiltInput = document.getElementById('yearsBuilt');
+    const renovatedYearInput = document.getElementById('renovatedYear');
+
+    // Add an event listener to the renovated year input field
+    renovatedYearInput.addEventListener('change', function () {
+        const yearsBuilt = parseInt(yearsBuiltInput.value);
+        const renovatedYear = parseInt(renovatedYearInput.value);
+
+        if (renovatedYear <= yearsBuilt) {
+            // Display an error message and prevent form submission
+            document.getElementById('renovatedYear-error').textContent = 'Renovation year must be greater than year built';
+            renovatedYearInput.setCustomValidity('Renovation year must be greater than year built');
+        } else {
+            // Clear any existing error messages
+            document.getElementById('renovatedYear-error').textContent = '';
+            renovatedYearInput.setCustomValidity('');
+        }
+    });
+</script>

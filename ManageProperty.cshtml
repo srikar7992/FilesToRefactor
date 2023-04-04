@@ -1,0 +1,594 @@
+﻿@page
+@model RentaMetrixUI.Pages.Portfolio.ManagePropertyModel
+
+@{
+    Layout = "_MasterLayout";
+}
+<link href="~/css/site.css" rel="stylesheet" />
+<script type="text/javascript" src="https://code.jquery.com/jquery-latest.js"></script>
+<div class="nk-content ">
+    <div class="container-fluid">
+        <div class="nk-content-inner">
+            <div class="nk-content-body">
+                <div class="nk-block-head nk-block-head-sm pb-2">
+                    <div class="nk-block-between g-3">
+                        <div class="nk-block-head-content">
+                            <h3 class="nk-block-title page-title" id="marketName">Manage Property <small>Market Name</small></h3>
+                            <div class="nk-block-des text-soft">
+                            </div>
+                        </div>
+                        <div class="nk-block-head-content">
+                            <ul class="nk-block-tools g-3">
+                                <li><form runat="server" asp-page-handler="BackButtonClicked"><button type="submit" class="btn btn-outline-light bg-white d-none d-sm-inline-flex"><em class="icon ni ni-arrow-left"></em><span>Back</span></button></form></li>
+                                @* <li class="nk-block-tools-opt"><a href="#" class="btn btn-primary"><em class="icon ni ni-plus"></em><span>Add Unit Floorplan</span></a></li>*@
+                            </ul>
+                        </div>
+                    </div>
+                </div><!-- .nk-block-head -->
+                <div class="nk-block">
+                    <div class="row g-gs">
+                        <div class="col-lg-3 col-xl-3 col-xxl-2">
+                            <div class="card card-bordered">
+                                <ul class="nav link-list-menu round m-0 p-0">
+                                    <li>
+                                        <a class="active" data-bs-toggle="tab" href="#tabItem1"><em class="icon ni ni-user"></em><span>Property Overview</span></a>
+                                    </li>
+                                    <li>
+                                        <a id="tabUpfrontcosts" data-bs-toggle="tab" href="#tabItem2"><em class="icon ni ni-lock-alt"></em><span>Upfront Costs</span></a>
+                                    </li>
+                                    <li>
+                                        <a data-bs-toggle="tab" href="#tabItem3"><em class="icon ni ni-bell"></em><span>Unit Floor Plans</span></a>
+                                    </li>
+                                    <li>
+                                        <a data-bs-toggle="tab" href="#tabItem4"><em class="icon ni ni-link"></em><span>Property Owners/Reps</span></a>
+                                    </li>
+                                    <li>
+                                        <a data-bs-toggle="tab" href="#tabItem5"><em class="icon ni ni-link"></em><span>Amenities</span></a>
+                                    </li>
+                                    <li>
+                                        <a data-bs-toggle="tab" href="#tabItem6"><em class="icon ni ni-link"></em><span>Competitors</span></a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div><!-- .col -->
+                        <div class="col-lg-9 col-xl-9 col-xxl-10">
+                            <div class="tab-content">
+                                <!-- Property Overview tab -->
+                                <div id="tabItem1" class="tab-pane active" role="tabpanel">
+                                    @await Html.PartialAsync("Portfolio/PropertyOverview_Partial", new RentaMetrix.DataModels.PropertyOverviewModel(){Property = Model.Property, PropertyTypes = Model.PropertyTypes, Universities = Model.Universities, MarketsViewModels = Model.MarketsViewModels})
+                                </div>
+
+                                <!-- Upfront Costs tab -->
+                                <div id="tabItem2" class="tab-pane" role="tabpanel">
+                                    @await Html.PartialAsync("Portfolio/UpfrontCosts_Partial")
+                                </div>
+
+                                <!-- Unit Floor Plans tab -->
+                                <div id="tabItem3" class="tab-pane" role="tabpanel">
+                                    @await Html.PartialAsync("Portfolio/UnitFloorPlans_Partial")
+                                </div>
+
+
+                                <!-- Property Owners/Reps tab -->
+                                <div id="tabItem4" class="tab-pane" role="tabpanel">
+                                    @await Html.PartialAsync("Portfolio/PropertyOwners_Partial")
+                                </div>
+
+                                <!-- Amenities tab -->
+                                <div id="tabItem5" class="tab-pane" role="tabpanel">
+                                    @await Html.PartialAsync("Portfolio/Amenities_Partial")
+                                </div>
+
+                                <!-- Competitors tab -->
+                                <div id="tabItem6" class="tab-pane" role="tabpanel">
+                                    @await Html.PartialAsync("Portfolio/Competitors_Partial")
+                                </div>
+                            </div>
+                            <!-- .tabcontent -->
+                        </div><!-- .col -->
+                    </div><!-- .row -->
+                </div><!-- .nk-block -->
+            </div>
+        </div>
+    </div>
+</div>
+<!---start refundable customfee--->
+<div class="modal fade" id="refundableCustomFee">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Refundable Custom Fee</h5>
+                <a href="#" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <em class="icon ni ni-cross"></em>
+                </a>
+            </div>
+            <form id="form2" runat="server" class="form-validate is-alter" asp-page-handler="">
+                <div class="modal-body">
+                    <div class="row gy-4">
+                        <div class="col-sm-12">
+
+                            <div class="form-group">
+                                <label class="form-label">Fee Type Name</label>
+                                <div class="form-control-wrap">
+                                    <input type="text" name="company.McName" class="form-control" id="" required />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="form-label">Fixed Amount</label>
+                                <div class="form-control-wrap">
+                                    <div class="form-icon form-icon-left">
+                                        <em class="icon ni ni-sign-dollar"></em>
+                                    </div>
+                                    <input type="number" class="form-control text-right" id="" placeholder="Enter amount">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-group mt-3">
+                        <button type="submit" class="btn btn-lg btn-primary">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!---end refundable customfee--->
+<!---start non-refundable customfee--->
+<div class="modal fade" id="nonRefundableCustomFee">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Non Refundable Custom Fee</h5>
+                <a href="#" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <em class="icon ni ni-cross"></em>
+                </a>
+            </div>
+            <form id="form2" runat="server" class="form-validate is-alter" asp-page-handler="">
+                <div class="modal-body">
+                    <div class="row gy-4">
+                        <div class="col-sm-12">
+
+                            <div class="form-group">
+                                <label class="form-label">Fee Type Name</label>
+                                <div class="form-control-wrap">
+                                    <input type="text" name="company.McName" class="form-control" id="" required />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="form-label">Fixed Amount</label>
+                                <div class="form-control-wrap">
+                                    <div class="form-icon form-icon-left">
+                                        <em class="icon ni ni-sign-dollar"></em>
+                                    </div>
+                                    <input type="number" class="form-control text-right" id="" placeholder="Enter amount">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-group mt-3">
+                        <button type="submit" class="btn btn-lg btn-primary">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!---end nonrefundable customfee--->
+<!---start unitFloorplan--->
+<div class="modal fade" id="unitFloorplan">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unit Floorplan</h5>
+                <a href="#" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <em class="icon ni ni-cross"></em>
+                </a>
+            </div>
+            <form id="form2" runat="server" class="form-validate is-alter" asp-page-handler="">
+                <div class="modal-body">
+                    <div style="max-height:400px; overflow-y:scroll; padding:20px;">
+                        <div class="row gy-4">
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <label class="form-label">Unit Name</label>
+                                    <div class="form-control-wrap">
+                                        <input type="text" name="" class="form-control" id="" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <label class="form-label">Beds</label>
+                                    <div class="form-control-wrap">
+                                        <input type="text" name="" class="form-control" id="" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <label class="form-label">Bath</label>
+                                    <div class="form-control-wrap">
+                                        <input type="text" name="" class="form-control" id="" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <label class="form-label">Max Occupancy</label>
+                                    <div class="form-control-wrap">
+                                        <input type="text" name="" class="form-control" id="" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <label class="form-label">Sq.Ft </label>
+                                    <div class="form-control-wrap">
+                                        <input type="text" name="" class="form-control" id="" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <div class="form-group">
+                                    <label class="form-label">Unit Count</label>
+                                    <div class="form-control-wrap">
+                                        <input type="text" name="" class="form-control" id="" required />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mt-5">
+                            <h5>Unit Amenities</h5>
+                            <h6 class="mt-5">Category 1</h6>
+                            <ul class="custom-control-group">
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck1">
+                                        <label class="custom-control-label" for="btnCheck1">Utilities Included </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck2">
+                                        <label class="custom-control-label" for="btnCheck2">Utilities Pricing, Internet/Cable Speed </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck3">
+                                        <label class="custom-control-label" for="btnCheck3">Unit Temperature Balance</label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck4">
+                                        <label class="custom-control-label" for="btnCheck4">Thermostat Quality </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck5">
+                                        <label class="custom-control-label" for="btnCheck5"> Balcony </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck6">
+                                        <label class="custom-control-label" for="btnCheck6">  Ample Storage</label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck7">
+                                        <label class="custom-control-label" for="btnCheck7">Bedrooms hardwired with ethernet </label>
+                                    </div>
+                                </li>
+                            </ul>
+                            <h6 class="mt-5">Category 2</h6>
+                            <ul class="custom-control-group">
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck11">
+                                        <label class="custom-control-label" for="btnCheck11">Utilities Included </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck21">
+                                        <label class="custom-control-label" for="btnCheck21">Utilities Pricing, Internet/Cable Speed </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck31">
+                                        <label class="custom-control-label" for="btnCheck31">Unit Temperature Balance</label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck41">
+                                        <label class="custom-control-label" for="btnCheck41">Thermostat Quality </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck51">
+                                        <label class="custom-control-label" for="btnCheck51"> Balcony </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck61">
+                                        <label class="custom-control-label" for="btnCheck61">  Ample Storage</label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck71">
+                                        <label class="custom-control-label" for="btnCheck71">Bedrooms hardwired with ethernet </label>
+                                    </div>
+                                </li>
+                            </ul>
+                            <h6 class="mt-5">Category 3</h6>
+                            <ul class="custom-control-group">
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck12">
+                                        <label class="custom-control-label" for="btnCheck12">Utilities Included </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck22">
+                                        <label class="custom-control-label" for="btnCheck22">Utilities Pricing, Internet/Cable Speed </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck32">
+                                        <label class="custom-control-label" for="btnCheck32">Unit Temperature Balance</label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck42">
+                                        <label class="custom-control-label" for="btnCheck42">Thermostat Quality </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck52">
+                                        <label class="custom-control-label" for="btnCheck52"> Balcony </label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck62">
+                                        <label class="custom-control-label" for="btnCheck62">  Ample Storage</label>
+                                    </div>
+                                </li>
+                                <li>
+                                    <div class="custom-control custom-checkbox custom-control-pro no-control">
+                                        <input type="checkbox" class="custom-control-input" name="btnCheck" id="btnCheck72">
+                                        <label class="custom-control-label" for="btnCheck72">Bedrooms hardwired with ethernet </label>
+                                    </div>
+                                </li>
+                            </ul>
+                            <h6 class="mt-5">Custom Amenities</h6>
+                            <div class="boxesContainer">
+                                <div class="boxes">Agnes<span class="boxclose ">&times;</span></div>
+                                <div class="boxes">Billy<span class="boxclose ">&times;</span></div>
+                                <div class="boxes">Bob <span class="boxclose ">&times;</span></div>
+                                <div class="boxes">Calvin<span class="boxclose ">&times;</span></div>
+                                <div class="boxes">Christina<span class="boxclose ">&times;</span></div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="form-control-wrap  col-sm-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Enter custom amenites">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-outline-primary btn-dim">Add</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label class="form-label" for="default-01 fw-bold">Floorplan Images</label>
+                            <div class="uploadgallery">
+                                <ul>
+                                    <li>
+                                        <img src="~/images/gallery/thumb.jpg" />
+                                        <div class="middle d-flex">
+                                            <div class="text"> <a href=""><em class="icon ni ni-trash-fill"></em></a></div>
+                                        </div>
+                                    </li>
+                                    <li><a href=""><img src="~/images/gallery/addimage.jpg" /></a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="form-group mt-3">
+                            <div class="form-group">
+                                <label class="form-label" for="default-textarea">Notes</label>
+                                <div class="form-control-wrap">
+                                    <textarea class="form-control no-resize" id="default-textarea"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-lg btn-primary">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!---end unitFloorplan--->
+<!---start property owner--->
+<div class="modal fade" id="propertyOwner">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Property Owners/Representative</h5>
+                <a href="#" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <em class="icon ni ni-cross"></em>
+                </a>
+            </div>
+            <form id="form2" runat="server" class="form-validate is-alter" asp-page-handler="">
+                <div class="modal-body modal-lg">
+                    <div class="row gy-4">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="form-label">First Name</label>
+                                <div class="form-control-wrap">
+                                    <input type="text" name="" class="form-control" placeholder="Enter first name" id="" required />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="form-label">Last Name</label>
+                                <div class="form-control-wrap">
+                                    <input type="text" name="" placeholder="Enter last name" class="form-control" id="" required />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="form-label">Do you want to create an account ?</label>
+                                <div class="form-control-wrap">
+                                    <div class="form-control-select">
+                                        <select class="form-control">
+                                            <option selected>No</option>
+                                            <option>Yes</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label class="form-label">Email Id</label>
+                                <div class="form-control-wrap">
+                                    <input type="email" name="" placeholder="Enter email Id" class="form-control" id="" required />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-group mt-3">
+                        <button type="submit" class="btn btn-lg btn-primary">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!---end property owner--->
+<script>
+    var closebtns = document.getElementsByClassName("boxclose");
+    var i;
+
+    for (i = 0; i < closebtns.length; i++) {
+        closebtns[i].addEventListener("click", function () {
+            this.parentElement.style.display = 'none';
+        });
+    }
+</script>
+
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            url: "/Portfolio/ManageProperty",
+            data: { handler: "PropertyOverview" },
+            type: 'GET',
+            success: function (result) {
+                // Get the dropdown element
+                var dropdown = $('#propertyTypeDropdown');
+                var propType = $('#propTypeId').val();
+                // Loop through the data and append options to the dropdown
+                for (var i = 0; i < result.length; i++) {
+                    if (propType) {
+                        if (propType == result[i].propertyTypeId) {
+                            dropdown.append($('<option selected></option>').attr('value', result[i].propertyTypeId).text(result[i].propertyTypeName));
+                        }
+                        else {
+                            dropdown.append($('<option></option>').attr('value', result[i].propertyTypeId).text(result[i].propertyTypeName));
+                        }
+                    }
+                    else {
+                        dropdown.append($('<option></option>').attr('value', result[i].propertyTypeId).text(result[i].propertyTypeName));
+                    }
+
+                }
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText);
+            }
+        });
+        $.ajax({
+            url: "/Portfolio/ManageProperty",
+            data: { handler: "UniversitiesByMarket", marketId: 1 },
+            type: 'GET',
+            success: function (result) {
+                // Get the dropdown element
+                var dropdown = $('.universityDropdown');
+                var univId = $('#univId').val();
+                // Loop through the data and append options to the dropdown
+                for (var i = 0; i < result.length; i++) {
+                    if (univId) {
+                        if (univId == result[i].universityId) {
+                            dropdown.append($('<option selected></option>').attr('value', result[i].universityId).text(result[i].universityName).data('info', result[i].latitude + '|' + result[i].longitude));
+                        }
+                        else {
+                            dropdown.append($('<option></option>')
+                                .attr('value', result[i].universityId)
+                                .data('info', result[i].latitude + '|' + result[i].longitude)
+                                .text(result[i].universityName));
+                        }
+                    }
+                    else {
+                        dropdown.append($('<option></option>')
+                            .attr('value', result[i].universityId)
+                            .data('info', result[i].latitude + '|' + result[i].longitude)
+                            .text(result[i].universityName));
+                    }
+                }
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText);
+            }
+        });
+        $.ajax({
+            url: "/Portfolio/ManageProperty",
+            data: { handler: "MarketViewModel" },
+            type: 'GET',
+            success: function (result) {
+                $("#marketName small:first-child").remove();
+                $("#marketName").append('<small>' + result[0].marketName + '<small>');
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText);
+            }
+        });
+    });
+    $(document).ready(function () {
+        if (localStorage["PropertyOverviewValidated"] != null && localStorage["PropertyOverviewValidated"] != undefined && localStorage["PropertyOverviewValidated"] != "" && localStorage["PropertyOverviewValidated"] != false && localStorage["PropertyOverviewValidated"] != "false") {
+            document.getElementById("tabUpfrontcosts").click();
+            localStorage["PropertyOverviewValidated"] = false;
+        }
+    });
+</script>
+
